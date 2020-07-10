@@ -1,45 +1,50 @@
 <?php
+session_start();
 include("config/db.php");
-if(isset($_POST['register'])){
-    $username = $_POST['username'];
+if(isset($_POST['login'])){
     $email = $_POST['email'];
     $password = $_POST['password'];
-    if($username !='' && $email !='' && $password !=''){
-        $pwd_hash = sha1($password);
-        $sql = "INSERT INTO users(username, email, password, user_role) VALUES('$username', '$email', '$pwd_hash', 0)";
-        $query = $conn->query($sql);
-        if($query){
-           header('Location:login.php');
-        }
-        else{
-            $error = 'falied to register user';
-        }
+    if($email !="" && $password !=""){
+         $passwd = sha1($password);
+         $sql = "SELECT * FROM users WHERE email = '$email' AND password = '$passwd'";
+         $result = mysqli_query($conn, $sql) or die('Error');
+         if (mysqli_num_rows($result) > 0) {
+           while($row = mysqli_fetch_assoc($result)){
+             $id = $row['id'];
+             $username = $row['username'];
+             $password = $row['password'];
+             $email = $row['email'];
+
+            $_SESSION['id'] = $id;
+            $_SESSION['username'] = $username;
+            $_SESSION['email'] = $email;
+            $_SESSION['password'] = $password;
+            header('Location:dashboard.php');
+           }
+         }
+         else{
+            $error = 'username or passqord is incorrect';
+
+         }
     }
     else{
-        $error = 'please fill all detalis';
-    }
+      $error = 'falied to register user';
+  }
 }
 
 ?>
 
+<?php if(isset($_SESSION['username'])):?>
+     <?php header('Location:dashboard.php');?>
+<?php else:?>
 
 
 <?php include("inc/header.php");?>
 
 <div class="container">
-<form class ="form-horizontal" action="index.php" method ="POST">
+<form class ="form-horizontal" action="login.php" method ="POST">
   <fieldset>
-    <legend>REGISTER USER</legend>
-    <div class="row">
-         <div class="col-md-6">
-            <div class="form-group">
-                <label for="username" class="col-lg-2 col-form-label">username</label>
-                <div class="col-lg-10">
-                    <input type="text" name="username" class="form-control" placeholder="username">
-                </div>
-            </div>
-         </div>
-    </div>
+    <legend>LOGIN USER</legend>
 
     <div class="row">
          <div class="col-md-6">
@@ -68,8 +73,8 @@ if(isset($_POST['register'])){
          <div class="col-md-6">
              <div class="form-group">
                 <div class="col-lg-10">
-                    <input type="submit" value="register" name="register" class="btn btn-dark">
-                  <button type="reset" class="btn btn-dark">Cancel</button>
+                    <input type="submit" name="login" value="Login" class="btn btn-primary">
+                  <button type="reset" class="btn btn-primary">Cancel</button>
                 </div>
                 </div>
          </div>
@@ -78,7 +83,7 @@ if(isset($_POST['register'])){
    <div class="row">
        <div class="form-group">
            <div class="col-lg-60">
-        <?php if(isset($_POST['register'])):?>
+        <?php if(isset($_POST['login'])):?>
              <div class="alert alert-dismissble alert-warning">
                    <p><?php echo $error; ?></p>
              </div>
@@ -92,5 +97,4 @@ if(isset($_POST['register'])){
 </div>
 
 <?php include("inc/footer.php");?>
-<script type="text/javascript" src="assets/js/jquery-3.1.0.js"></script>
-<script type="text/javascript" src="assets/js/bootstrap.js"></script>
+<?php endif; ?>
